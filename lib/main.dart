@@ -1,0 +1,30 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'src/features/core/home_screen.dart';
+import 'src/features/auth/screens/login_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  print("🎯 Token at startup: $token"); // ✅ Moved inside build method
+
+  runApp(MyApp(token: token));
+}
+
+class MyApp extends StatelessWidget {
+  final String? token;
+
+  const MyApp({super.key, this.token});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: token != null ? HomeScreen() : LoginScreen(),
+    );
+  }
+}
