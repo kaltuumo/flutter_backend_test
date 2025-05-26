@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/app_navigator.dart';
 import 'package:flutter_app/src/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_app/src/features/auth/screens/SingUpScreen.dart';
-import 'package:flutter_app/src/features/core/home_screen.dart';
 import 'package:flutter_app/src/shared/widgets/custom_buttons.dart';
 import 'package:flutter_app/src/utilities/constants/colors.dart';
 import 'package:flutter_app/src/utilities/constants/images.dart';
@@ -134,7 +134,7 @@ class LoginScreen extends StatelessWidget {
                           String? token = prefs.getString('token');
                           if (token != null) {
                             Get.offAll(
-                              () => HomeScreen(),
+                              () => AppNavigator(),
                             ); // Navigate to Home if token is found
                           }
                         },

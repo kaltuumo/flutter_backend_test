@@ -6,6 +6,7 @@ import 'package:flutter_app/src/utilities/constants/colors.dart';
 import 'package:flutter_app/src/utilities/constants/images.dart';
 import 'package:flutter_app/src/utilities/constants/sizes.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Singupscreen extends StatelessWidget {
   const Singupscreen({super.key});
@@ -226,8 +227,15 @@ class Singupscreen extends StatelessWidget {
                       width: double.infinity,
                       child: CustomButtons(
                         text: "SignUp",
-                        onTap: () {
-                          authController.signupUser();
+                        onTap: () async {
+                          bool success = await authController.signupUser();
+
+                          if (success) {
+                            authController.clearSignupFields();
+                            Get.offAll(() => LoginScreen());
+                          } else {
+                            print('Signup failed, not navigating.');
+                          }
                         },
                       ),
                     ),

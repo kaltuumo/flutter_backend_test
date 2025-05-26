@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/app_navigator.dart';
+import 'package:flutter_app/src/features/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'src/features/core/home_screen.dart';
 import 'src/features/auth/screens/login_screen.dart';
 
 void main() async {
+  Get.put(AuthController()); // Register your AuthController here
+
   WidgetsFlutterBinding.ensureInitialized();
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -24,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: token != null ? HomeScreen() : LoginScreen(),
+      home: token != null ? AppNavigator() : LoginScreen(),
     );
   }
 }
