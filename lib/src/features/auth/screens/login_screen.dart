@@ -126,16 +126,13 @@ class LoginScreen extends StatelessWidget {
                         text: "Login",
                         onTap: () async {
                           await authController
-                              .loginUser(); // Call loginUser method
-
-                          // After login, check if token is saved and navigate accordingly
+                              .loginUser(); // Corrected method name
+                          // Check if token is saved and navigate accordingly
                           SharedPreferences prefs =
                               await SharedPreferences.getInstance();
                           String? token = prefs.getString('token');
                           if (token != null) {
-                            Get.offAll(
-                              () => AppNavigator(),
-                            ); // Navigate to Home if token is found
+                            Get.offAll(() => AppNavigator());
                           }
                         },
                       ),

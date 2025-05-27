@@ -5,6 +5,7 @@ class ProfileWidget extends StatelessWidget {
   final String text;
   final String subText;
   final IconData iconData;
+
   const ProfileWidget({
     super.key,
     required this.text,
@@ -27,9 +28,12 @@ class ProfileWidget extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(text, style: TextStyle(fontSize: AppSizes.fontSizeLg)),
               Text(
                 text,
+                style: TextStyle(fontSize: AppSizes.fontSizeLg),
+              ), // Tani waa magaca qaybta
+              Text(
+                subText, // Halkan waxaa lagu daabacayaa subText (sida taleefanka ama emailka)
                 style: TextStyle(
                   fontSize: AppSizes.fontSizeMd,
                   color: Colors.grey,

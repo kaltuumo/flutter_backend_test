@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'src/features/auth/screens/login_screen.dart';
 
 void main() async {
+  // Get.put(UserController());
+
   Get.put(AuthController()); // Register your AuthController here
 
   WidgetsFlutterBinding.ensureInitialized();

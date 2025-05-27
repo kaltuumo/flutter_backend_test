@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/src/utilities/constants/api_constants.dart';
 import 'package:get/get.dart';
-import 'package:flutter_app/app_navigator.dart';
 import 'package:flutter_app/src/features/auth/screens/login_screen.dart';
 
 class ApiClient {
@@ -13,7 +12,7 @@ class ApiClient {
     required String phone,
     required String password,
   }) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}/signup');
+    final url = Uri.parse('${ApiConstants.authEndpoint}/signup');
 
     try {
       final response = await http.post(
@@ -38,6 +37,7 @@ class ApiClient {
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
+        await prefs.setString('email', email); // Saving the email as well
 
         Get.snackbar('Success', 'Account created successfully');
         return true; // Return true to indicate success
@@ -54,11 +54,11 @@ class ApiClient {
     }
   }
 
-  static Future<void> login({
+  static Future<Map<String, dynamic>?> login({
     required String email,
     required String password,
   }) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}/signin');
+    final url = Uri.parse('${ApiConstants.authEndpoint}/signin');
 
     try {
       final response = await http.post(
@@ -69,23 +69,42 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        String token = responseBody['token'];
 
+        // Optional: save token
+        String token = responseBody['token'];
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('email', email);
 
         Get.snackbar('Success', 'Logged in successfully');
-        Get.offAll(() => AppNavigator());
+
+        // ✅ Return user object (assumes you get user in response)
+        return responseBody['user']; // <-- adjust this if your response is different
       } else {
         final responseBody = jsonDecode(response.body);
         String errorMessage = responseBody['message'] ?? 'User does not exist';
         Get.snackbar('Error', errorMessage);
+        return null;
       }
     } catch (e) {
       Get.snackbar('Error', 'Something went wrong');
       print('Login Error: $e');
+      return null;
     }
+  }
+
+  static Future<http.Response> getAllUsers(String token) async {
+    final url = Uri.parse('${ApiConstants.profileEndpoint}');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    return response;
   }
 
   static Future<void> logout() async {

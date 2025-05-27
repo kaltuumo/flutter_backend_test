@@ -40,5 +40,5 @@ class AppNavigator extends StatelessWidget {
 class _NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
-  final screens = [HomeScreen(), const ProfileScreen()];
+  final screens = [HomeScreen(), ProfileScreen()];
 }
