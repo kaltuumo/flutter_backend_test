@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_app/src/features/core/models/post_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/src/utilities/constants/api_constants.dart';
@@ -26,31 +27,25 @@ class ApiClient {
         }),
       );
 
-      print('Response: ${response.statusCode}');
-      print('Body: ${response.body}');
-
-      // ✅ Allow both 200 and 201 status codes as success
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseBody = jsonDecode(response.body);
-        String token =
-            responseBody['result']['_id']; // Change 'token' to '_id' based on your response
+        String token = responseBody['result']['_id'];
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
-        await prefs.setString('email', email); // Saving the email as well
+        await prefs.setString('email', email);
 
         Get.snackbar('Success', 'Account created successfully');
-        return true; // Return true to indicate success
+        return true;
       } else {
         final responseBody = jsonDecode(response.body);
         String errorMessage = responseBody['message'] ?? 'Signup failed';
         Get.snackbar('Error', errorMessage);
-        return false; // Return false for failure
+        return false;
       }
     } catch (e) {
-      print('Signup Error: $e');
       Get.snackbar('Error', 'Something went wrong during signup');
-      return false; // Return false for error
+      return false;
     }
   }
 
@@ -69,17 +64,16 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-
-        // Optional: save token
+        // Token ka soo qaad response-ka
         String token = responseBody['token'];
+
+        // Kaydi token-ka si uu noqdo mid default ah
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('email', email);
 
         Get.snackbar('Success', 'Logged in successfully');
-
-        // ✅ Return user object (assumes you get user in response)
-        return responseBody['user']; // <-- adjust this if your response is different
+        return responseBody['user'];
       } else {
         final responseBody = jsonDecode(response.body);
         String errorMessage = responseBody['message'] ?? 'User does not exist';
@@ -88,8 +82,61 @@ class ApiClient {
       }
     } catch (e) {
       Get.snackbar('Error', 'Something went wrong');
-      print('Login Error: $e');
       return null;
+    }
+  }
+
+  static Future<bool> createPost(PostModel post) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      Get.snackbar('Error', 'User not logged in');
+      return false;
+    }
+
+    final url = Uri.parse('${ApiConstants.postEndpoint}/create-post');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(post.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final responseBody = jsonDecode(response.body);
+        String error = responseBody['message'] ?? 'Failed to create post';
+        Get.snackbar('Error', error);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Something went wrong');
+      return false;
+    }
+  }
+
+  static Future<List<dynamic>> getPosts() async {
+    final url = Uri.parse(
+      '${ApiConstants.postEndpoint}/all-posts',
+    ); // URL sax ah
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final jsonBody = jsonDecode(response.body); // Parse JSON response
+        return jsonBody['data']; // Kaliya xogta 'data' ka soo qaad
+      } else {
+        throw Exception('Failed to load posts');
+      }
+    } catch (e) {
+      throw Exception('Failed to load posts: $e');
     }
   }
 
@@ -109,7 +156,7 @@ class ApiClient {
 
   static Future<void> logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.clear(); // Tirtir dhammaan xogta keydka
     Get.offAll(() => LoginScreen());
   }
 }

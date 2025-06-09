@@ -8,10 +8,10 @@ import 'src/features/auth/screens/login_screen.dart';
 
 void main() async {
   // Get.put(UserController());
+  WidgetsFlutterBinding.ensureInitialized();
 
   Get.put(AuthController()); // Register your AuthController here
-
-  WidgetsFlutterBinding.ensureInitialized();
+  // Get.put(PostController()); // Register your PostController here
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
