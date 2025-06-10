@@ -154,6 +154,80 @@ class ApiClient {
     return response;
   }
 
+  /// Update Post
+
+  static Future<bool> updatePost(String id, PostModel post) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      Get.snackbar('Error', 'User not logged in');
+      return false;
+    }
+
+    final url = Uri.parse('${ApiConstants.postEndpoint}/update-post?_id=$id');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(post.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final responseBody = jsonDecode(response.body);
+        String error = responseBody['message'] ?? 'Failed to update post';
+        Get.snackbar('Error', error);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Something went wrong: $e');
+      return false;
+    }
+  }
+
+  /// Delete Post
+
+  static Future<bool> deletePost(String id, PostModel post) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      Get.snackbar('Error', 'User not logged in');
+      return false;
+    }
+
+    final url = Uri.parse('${ApiConstants.postEndpoint}/delete-post?_id=$id');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(post.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final responseBody = jsonDecode(response.body);
+        String error = responseBody['message'] ?? 'Failed to Delete post';
+        Get.snackbar('Error', error);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Something went wrong: $e');
+      return false;
+    }
+  }
+
   static Future<void> logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear(); // Tirtir dhammaan xogta keydka

@@ -12,4 +12,12 @@ class PostRepository {
         .map<PostModel>((json) => PostModel.fromJson(json))
         .toList();
   }
+
+  Future<bool> updatePost(String id, PostModel post) {
+    return ApiClient.updatePost(id, post);
+  }
+
+  Future<bool> deletePost(String id, PostModel post) {
+    return ApiClient.deletePost(id, post); // Only pass the id for deletion
+  }
 }

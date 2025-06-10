@@ -7,11 +7,13 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Call fetchAllPosts when HomeScreen is loaded
-    postController.fetchAllPosts();
+    postController.fetchAllPosts(); // Fetch posts initially
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create New Post'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Create or Update Post'),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -50,43 +52,88 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            Obx(
-              () =>
-                  postController.isLoading.value
-                      ? const Center(child: CircularProgressIndicator())
-                      : Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: postController.createPost,
-                            child: const Text("Create Post"),
-                          ),
-                          const SizedBox(height: 16),
-                          const Divider(),
+            Obx(() {
+              if (postController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                          const Text(
-                            "All Posts",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+              return Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: postController.createPost,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Create Post"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  ElevatedButton.icon(
+                    onPressed: postController.updatePost,
+                    icon: const Icon(Icons.update),
+                    label: const Text("Update Post"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+                ],
+              );
+            }),
+
+            const SizedBox(height: 20),
+            const Divider(),
+
+            const Text(
+              "All Posts",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            Obx(
+              () => ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: postController.posts.length,
+                itemBuilder: (context, index) {
+                  final post = postController.posts[index];
+                  return Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      title: Text(post.title),
+                      subtitle: Text(post.description),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              postController.titleController.text = post.title;
+                              postController.descriptionController.text =
+                                  post.description;
+                              postController.setSelectedPostId(post.id ?? '');
+                            },
                           ),
-                          const SizedBox(height: 10),
-                          Obx(
-                            () => ListView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: postController.posts.length,
-                              itemBuilder: (context, index) {
-                                final post = postController.posts[index];
-                                return ListTile(
-                                  title: Text(post.title),
-                                  subtitle: Text(post.description),
-                                );
-                              },
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              postController.setSelectedPostId(post.id ?? '');
+
+                              // Add delete logic here if needed
+                            },
                           ),
                         ],
                       ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

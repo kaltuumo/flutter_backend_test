@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/features/core/models/post_model.dart';
 import 'package:flutter_app/src/features/core/repositories/post_repository.dart';
+import 'package:flutter_app/src/utilities/constants/api_constants.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PostController extends GetxController {
   final titleController = TextEditingController();
@@ -9,6 +14,11 @@ class PostController extends GetxController {
 
   final isLoading = false.obs;
   final isPostCreated = false.obs;
+  String? selectedPostId;
+
+  void setSelectedPostId(String id) {
+    selectedPostId = id;
+  }
 
   final RxList<PostModel> posts = <PostModel>[].obs; // ✅ Add this
 
@@ -53,6 +63,64 @@ class PostController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> updatePost() async {
+    if (selectedPostId == null) {
+      Get.snackbar('Error', 'No post selected for update');
+      return;
+    }
+
+    if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
+      Get.snackbar('Error', 'Both title and description are required');
+      return;
+    }
+
+    isLoading(true);
+
+    final post = PostModel(
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+    );
+
+    bool success = await _postRepository.updatePost(selectedPostId!, post);
+
+    if (success) {
+      Get.snackbar('Success', 'Post updated successfully');
+      selectedPostId = null;
+      titleController.clear();
+      descriptionController.clear();
+      fetchAllPosts();
+    } else {
+      Get.snackbar('Error', 'Failed to update post');
+    }
+
+    isLoading(false);
+  }
+
+  //Delete Post
+  Future<void> deletePost() async {
+    if (selectedPostId == null) {
+      Get.snackbar('Error', 'No post selected for deletion');
+      return;
+    }
+
+    isLoading(true);
+
+    bool success = await _postRepository.deletePost(
+      selectedPostId!,
+      posts.firstWhere((post) => post.id == selectedPostId),
+    );
+
+    if (success) {
+      Get.snackbar('Success', 'Post deleted successfully');
+      selectedPostId = null;
+      fetchAllPosts();
+    } else {
+      Get.snackbar('Error', 'Failed to delete post');
+    }
+
+    isLoading(false);
   }
 
   @override
