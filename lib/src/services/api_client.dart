@@ -29,7 +29,7 @@ class ApiClient {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseBody = jsonDecode(response.body);
-        String token = responseBody['result']['_id'];
+        String token = responseBody['token']; // ✅ Correct field
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
@@ -131,7 +131,20 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body); // Parse JSON response
-        return jsonBody['data']; // Kaliya xogta 'data' ka soo qaad
+
+        List posts = jsonBody['data']; // Kaliya xogta 'data' ka soo qaad
+        // print("RESPONSE DATA: $jsonBody"); // ✅ Aragtid xogta
+
+        // Loop through each post and handle the image if exists
+        for (var post in posts) {
+          if (post['image'] != null) {
+            // If there's an image, we convert the base64 string to an image
+            post['image'] =
+                post['image']; // Here you can handle the image as needed
+          }
+        }
+
+        return posts; // Return list of posts with image data
       } else {
         throw Exception('Failed to load posts');
       }
@@ -191,39 +204,39 @@ class ApiClient {
     }
   }
 
-  /// Delete Post
-
-  static Future<bool> deletePost(String id, PostModel post) async {
+  static Future<bool> deletePost(String id) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
+    print('Sending token: $token');
 
-    if (token == null) {
-      Get.snackbar('Error', 'User not logged in');
+    if (token == null || token.isEmpty) {
+      Get.snackbar('Error', 'No token found');
       return false;
     }
 
-    final url = Uri.parse('${ApiConstants.postEndpoint}/delete-post?_id=$id');
+    final url = Uri.parse(
+      '${ApiConstants.postEndpoint}/delete-post?_id=$id',
+    ); // Correct URL with query string
 
     try {
-      final response = await http.put(
+      final response = await http.delete(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization':
+              'Bearer $token', // Ensure token is being sent in the header
         },
-        body: jsonEncode(post.toJson()),
       );
 
       if (response.statusCode == 200) {
+        print('Post deleted successfully');
         return true;
       } else {
-        final responseBody = jsonDecode(response.body);
-        String error = responseBody['message'] ?? 'Failed to Delete post';
-        Get.snackbar('Error', error);
+        print('Failed to delete post: ${response.body}');
         return false;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong: $e');
+      print('Error deleting post: $e');
       return false;
     }
   }

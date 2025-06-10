@@ -99,6 +99,7 @@ class HomeScreen extends StatelessWidget {
                 itemCount: postController.posts.length,
                 itemBuilder: (context, index) {
                   final post = postController.posts[index];
+
                   return Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
@@ -106,6 +107,19 @@ class HomeScreen extends StatelessWidget {
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
+                      leading:
+                          post.image != null
+                              ? CircleAvatar(
+                                backgroundImage: MemoryImage(
+                                  post.image!,
+                                ), // Use MemoryImage here
+                                radius: 25,
+                              )
+                              : const CircleAvatar(
+                                child: Icon(Icons.image, color: Colors.white),
+                                backgroundColor: Colors.grey,
+                                radius: 25,
+                              ),
                       title: Text(post.title),
                       subtitle: Text(post.description),
                       trailing: Row(
@@ -117,15 +131,14 @@ class HomeScreen extends StatelessWidget {
                               postController.titleController.text = post.title;
                               postController.descriptionController.text =
                                   post.description;
-                              postController.setSelectedPostId(post.id ?? '');
+                              postController.setSelectedPostId(post.id!);
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              postController.setSelectedPostId(post.id ?? '');
-
-                              // Add delete logic here if needed
+                            onPressed: () async {
+                              postController.setSelectedPostId(post.id!);
+                              await postController.deletePost();
                             },
                           ),
                         ],

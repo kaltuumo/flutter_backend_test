@@ -1,12 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/features/core/models/post_model.dart';
 import 'package:flutter_app/src/features/core/repositories/post_repository.dart';
-import 'package:flutter_app/src/utilities/constants/api_constants.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PostController extends GetxController {
   final titleController = TextEditingController();
@@ -16,14 +11,17 @@ class PostController extends GetxController {
   final isPostCreated = false.obs;
   String? selectedPostId;
 
+  // Set selected post ID
   void setSelectedPostId(String id) {
     selectedPostId = id;
   }
 
-  final RxList<PostModel> posts = <PostModel>[].obs; // ✅ Add this
+  // Observable list of posts
+  final RxList<PostModel> posts = <PostModel>[].obs;
 
   final PostRepository _postRepository = PostRepository();
 
+  // Create a new post
   Future<void> createPost() async {
     if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
       Get.snackbar('Error', 'Both title and description are required');
@@ -44,7 +42,7 @@ class PostController extends GetxController {
       descriptionController.clear();
       Get.snackbar('Success', 'Post created successfully');
       isPostCreated(true);
-      fetchAllPosts(); // 🔹 Optionally refresh posts after creation
+      fetchAllPosts(); // Optionally refresh posts after creation
     } else {
       Get.snackbar('Error', 'Failed to create post');
       isPostCreated(false);
@@ -53,6 +51,7 @@ class PostController extends GetxController {
     isLoading(false);
   }
 
+  // Fetch all posts
   void fetchAllPosts() async {
     try {
       isLoading.value = true;
@@ -65,6 +64,7 @@ class PostController extends GetxController {
     }
   }
 
+  // Update a selected post
   Future<void> updatePost() async {
     if (selectedPostId == null) {
       Get.snackbar('Error', 'No post selected for update');
@@ -98,7 +98,7 @@ class PostController extends GetxController {
     isLoading(false);
   }
 
-  //Delete Post
+  // Delete a selected post
   Future<void> deletePost() async {
     if (selectedPostId == null) {
       Get.snackbar('Error', 'No post selected for deletion');
@@ -107,15 +107,13 @@ class PostController extends GetxController {
 
     isLoading(true);
 
-    bool success = await _postRepository.deletePost(
-      selectedPostId!,
-      posts.firstWhere((post) => post.id == selectedPostId),
-    );
+    // Pass only the selectedPostId for deletion
+    bool success = await _postRepository.deletePost(selectedPostId!);
 
     if (success) {
       Get.snackbar('Success', 'Post deleted successfully');
       selectedPostId = null;
-      fetchAllPosts();
+      fetchAllPosts(); // Refresh the list after deletion
     } else {
       Get.snackbar('Error', 'Failed to delete post');
     }
