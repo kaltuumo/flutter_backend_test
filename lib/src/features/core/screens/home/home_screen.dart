@@ -108,11 +108,9 @@ class HomeScreen extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       leading:
-                          post.image != null
+                          post.imageBytes != null
                               ? CircleAvatar(
-                                backgroundImage: MemoryImage(
-                                  post.image!,
-                                ), // Use MemoryImage here
+                                backgroundImage: MemoryImage(post.imageBytes!),
                                 radius: 25,
                               )
                               : const CircleAvatar(

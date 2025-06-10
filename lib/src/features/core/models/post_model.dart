@@ -1,40 +1,44 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 class PostModel {
   final String? id;
   final String title;
   final String description;
-  final Uint8List? image;
+  final String? base64Image;
 
   PostModel({
     this.id,
     required this.title,
     required this.description,
-    this.image,
+    this.base64Image,
   });
 
-  factory PostModel.fromJson(Map<String, dynamic> json) {
-    Uint8List? imageData;
+  // Computed property to decode base64 string
+  Uint8List? get imageBytes {
+    if (base64Image == null) return null;
     try {
-      if (json['image'] != null &&
-          json['image']['data'] != null &&
-          json['image']['data']['data'] != null) {
-        List<dynamic> dataList = json['image']['data']['data'];
-        imageData = Uint8List.fromList(dataList.cast<int>());
-      }
-    } catch (_) {
-      imageData = null;
+      final base64Str = base64Image!.split(',').last;
+      return base64Decode(base64Str);
+    } catch (e) {
+      return null;
     }
+  }
 
+  factory PostModel.fromJson(Map<String, dynamic> json) {
     return PostModel(
       id: json['_id'],
-      title: json['title'],
-      description: json['description'],
-      image: imageData,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      base64Image: json['image'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'title': title, 'description': description};
+    return {
+      'title': title,
+      'description': description,
+      if (base64Image != null) 'image': base64Image,
+    };
   }
 }
