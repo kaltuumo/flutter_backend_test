@@ -10,8 +10,8 @@ void main() async {
   // Get.put(UserController());
   WidgetsFlutterBinding.ensureInitialized();
 
-  Get.put(AuthController()); // Register your AuthController here
-  // Get.put(PostController()); // Register your PostController here
+  Get.put(AuthController());
+  // Get.put(PostController());
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');

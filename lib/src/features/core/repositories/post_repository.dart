@@ -22,6 +22,6 @@ class PostRepository {
 
   // Delete a post by id
   Future<bool> deletePost(String id) {
-    return ApiClient.deletePost(id); // Only pass the id for deletion
+    return ApiClient.deletePost(id);
   }
 }

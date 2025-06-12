@@ -1,12 +1,30 @@
 import 'dart:convert';
 import 'package:flutter_app/src/features/core/models/post_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/src/utilities/constants/api_constants.dart';
 import 'package:get/get.dart';
 import 'package:flutter_app/src/features/auth/screens/login_screen.dart';
 
 class ApiClient {
+  // Method to format date
+  static String formatDate(String dateString) {
+    final dateTime = DateTime.parse(dateString);
+    return DateFormat('yyyy-MM-dd').format(dateTime);
+  }
+
+  // Tusaale isticmaalkiisa:
+  static void exampleUsage() {
+    String formattedCreatedAt = formatDate("2025-06-12T16:13:19.923Z");
+    String formattedUpdatedAt = formatDate("2025-06-12T16:14:18.577Z");
+
+    print('Formatted CreatedAt: $formattedCreatedAt');
+    print('Formatted UpdatedAt: $formattedUpdatedAt');
+  }
+
+  // ... (rest of your code remains unchanged)
+
   static Future<bool> signup({
     required String fullname,
     required String email,

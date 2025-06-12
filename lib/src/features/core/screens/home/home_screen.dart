@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io'; // for File
 import '../../controllers/post_controller.dart';
 
 class HomeScreen extends StatelessWidget {
   final PostController postController = Get.put(PostController());
+  final ImagePicker _picker = ImagePicker(); // Image picker instance
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
+            // Title TextField
             TextField(
               controller: postController.titleController,
               decoration: InputDecoration(
@@ -38,6 +42,7 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
+            // Description TextField
             TextField(
               controller: postController.descriptionController,
               maxLines: 3,
@@ -50,8 +55,50 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
+            const SizedBox(height: 16),
+
+            // Image upload button
+            ElevatedButton.icon(
+              onPressed: () async {
+                final XFile? image = await _picker.pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (image != null) {
+                  postController.setSelectedImage(
+                    File(image.path),
+                  ); // Update image in controller
+                }
+              },
+              icon: const Icon(Icons.image),
+              label: const Text('Upload Image'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            ),
+
+            // Show selected image path or thumbnail
+            Obx(() {
+              if (postController.selectedImage.value != null) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Image.file(
+                      postController.selectedImage.value!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Selected Image: ${postController.selectedImage.value!.path}',
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+
             const SizedBox(height: 30),
 
+            // Buttons for Create and Update post
             Obx(() {
               if (postController.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
@@ -77,7 +124,6 @@ class HomeScreen extends StatelessWidget {
                       backgroundColor: Colors.orange,
                     ),
                   ),
-
                   const SizedBox(width: 16),
                 ],
               );
@@ -92,6 +138,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
+            // Displaying all posts
             Obx(
               () => ListView.builder(
                 shrinkWrap: true,
@@ -119,7 +166,16 @@ class HomeScreen extends StatelessWidget {
                                 radius: 25,
                               ),
                       title: Text(post.title),
-                      subtitle: Text(post.description),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(post.description),
+                          if (post.createdAt != null)
+                            Text('Created At: ${post.createdAt}'),
+                          if (post.updatedAt != null)
+                            Text('Updated At: ${post.updatedAt}'),
+                        ],
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
