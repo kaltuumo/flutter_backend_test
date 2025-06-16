@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // for File
-import '../../controllers/post_controller.dart';
+import 'package:flutter_app/src/features/core/controllers/post_controller.dart';
 
 class HomeScreen extends StatelessWidget {
   final PostController postController = Get.put(PostController());
-  final ImagePicker _picker = ImagePicker(); // Image picker instance
 
   @override
   Widget build(BuildContext context) {
-    postController.fetchAllPosts(); // Fetch posts initially
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create or Update Post'),
@@ -28,7 +23,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Title TextField
+            // Title Input Field
             TextField(
               controller: postController.titleController,
               decoration: InputDecoration(
@@ -39,10 +34,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
 
-            // Description TextField
+            // Description Input Field
             TextField(
               controller: postController.descriptionController,
               maxLines: 3,
@@ -54,27 +48,17 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
 
-            // Image upload button
+            // Upload Image Button
             ElevatedButton.icon(
-              onPressed: () async {
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.gallery,
-                );
-                if (image != null) {
-                  postController.setSelectedImage(
-                    File(image.path),
-                  ); // Update image in controller
-                }
-              },
+              onPressed: postController.pickImage,
               icon: const Icon(Icons.image),
               label: const Text('Upload Image'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             ),
 
-            // Show selected image path or thumbnail
+            // Show selected image
             Obx(() {
               if (postController.selectedImage.value != null) {
                 return Column(
@@ -98,7 +82,7 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // Buttons for Create and Update post
+            // Create or Update Post Buttons
             Obx(() {
               if (postController.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
@@ -115,7 +99,6 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-
                   ElevatedButton.icon(
                     onPressed: postController.updatePost,
                     icon: const Icon(Icons.update),
@@ -124,21 +107,19 @@ class HomeScreen extends StatelessWidget {
                       backgroundColor: Colors.orange,
                     ),
                   ),
-                  const SizedBox(width: 16),
                 ],
               );
             }),
 
             const SizedBox(height: 20),
             const Divider(),
-
             const Text(
               "All Posts",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
 
-            // Displaying all posts
+            // List of Posts
             Obx(
               () => ListView.builder(
                 shrinkWrap: true,
@@ -146,7 +127,6 @@ class HomeScreen extends StatelessWidget {
                 itemCount: postController.posts.length,
                 itemBuilder: (context, index) {
                   final post = postController.posts[index];
-
                   return Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(

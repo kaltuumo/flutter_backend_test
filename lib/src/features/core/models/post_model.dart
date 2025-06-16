@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:intl/intl.dart';
 
 class PostModel {
   final String? id;
@@ -19,26 +18,11 @@ class PostModel {
     this.updatedAt,
   });
 
-  // Computed property to decode base64 string
-  Uint8List? get imageBytes {
-    if (base64Image == null) return null;
-    try {
-      final clean =
-          base64Image!.contains(',')
-              ? base64Image!.split(',').last
-              : base64Image!;
-      return base64Decode(clean);
-    } catch (e) {
-      print('Image decode error: $e');
-      return null;
-    }
-  }
-
   factory PostModel.fromJson(Map<String, dynamic> json) {
     return PostModel(
       id: json['_id'],
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
+      title: json['title'],
+      description: json['description'],
       base64Image: json['image'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -46,23 +30,9 @@ class PostModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'description': description,
-      if (base64Image != null) 'image': base64Image,
-    };
+    return {'title': title, 'description': description, 'image': base64Image};
   }
 
-  // 🔽 Halkan ku dar getters-ka cusub
-  String? get formattedCreatedAt {
-    if (createdAt == null) return null;
-    final date = DateTime.parse(createdAt!);
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
-  String? get formattedUpdatedAt {
-    if (updatedAt == null) return null;
-    final date = DateTime.parse(updatedAt!);
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
+  Uint8List? get imageBytes =>
+      base64Image != null ? base64Decode(base64Image!.split(',').last) : null;
 }

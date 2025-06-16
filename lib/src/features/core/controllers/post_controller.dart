@@ -1,47 +1,56 @@
 import 'dart:convert';
-import 'dart:io'; // for File
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/features/core/models/post_model.dart';
 import 'package:flutter_app/src/features/core/repositories/post_repository.dart';
-import 'package:flutter_app/src/services/api_client.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PostController extends GetxController {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
-  final currentDate = ApiClient.formatDate(DateTime.now().toIso8601String());
 
   final isLoading = false.obs;
   final isPostCreated = false.obs;
-  String? selectedPostId;
 
-  // Observable list of posts
   final RxList<PostModel> posts = <PostModel>[].obs;
-  final Rx<File?> selectedImage = Rx<File?>(null); // Store selected image
-
-  final PostRepository _postRepository = PostRepository();
+  final Rx<File?> selectedImage = Rx<File?>(null);
+  String? selectedPostId;
   final ImagePicker _picker = ImagePicker();
+  String? base64Image;
+  final PostRepository _postRepository = PostRepository();
 
-  // Set selected post ID
+  @override
+  void onInit() {
+    fetchAllPosts(); // Call once
+    super.onInit();
+  }
+
   void setSelectedPostId(String id) {
     selectedPostId = id;
   }
 
-  // Set selected image
   void setSelectedImage(File image) {
     selectedImage.value = image;
   }
 
-  // Create a new post
+  Future<void> pickImage() async {
+    print("Picking image...");
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      print("Image Selected: ${image.path}");
+      selectedImage.value = File(image.path); // Convert XFile to File
+    } else {
+      print("No Image Selected");
+      print("Base64 Image: $base64Image");
+    }
+  }
 
   Future<void> createPost() async {
     if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
-      Get.snackbar('Error', 'Both title and description are required');
+      Get.snackbar('Error', 'Title and Description required');
       return;
     }
-
-    if (isLoading.value) return;
 
     try {
       isLoading(true);
@@ -60,7 +69,7 @@ class PostController extends GetxController {
       final post = PostModel(
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
-        base64Image: base64Image,
+        base64Image: base64Image, // Ensure image data is passed correctly
       );
 
       bool success = await _postRepository.createPost(post);
@@ -69,112 +78,97 @@ class PostController extends GetxController {
         titleController.clear();
         descriptionController.clear();
         selectedImage.value = null;
-        Get.snackbar('Success', 'Post created successfully');
+        Get.snackbar('Success', 'Post created');
         isPostCreated(true);
-        await fetchAllPosts(); // Refresh list
+        await fetchAllPosts();
       } else {
-        Get.snackbar('Error', 'Failed to create post');
-        isPostCreated(false);
+        Get.snackbar('Error', 'Post creation failed');
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar('Error', 'Error occurred: $e');
     } finally {
       isLoading(false);
     }
   }
 
-  // Fetch all posts
-  Future<void> fetchAllPosts() async {
-    try {
-      isLoading(true);
-      final data = await _postRepository.fetchPosts();
-      posts.assignAll(data); // Save posts to the observable list
-    } catch (e) {
-      Get.snackbar("Error", 'Failed to fetch posts: $e');
-    } finally {
-      isLoading(false);
-    }
-  }
-
-  // Update a selected post
   Future<void> updatePost() async {
     if (selectedPostId == null) {
-      Get.snackbar('Error', 'No post selected for update');
+      Get.snackbar('Error', 'No post selected');
       return;
     }
 
     if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
-      Get.snackbar('Error', 'Both title and description are required');
+      Get.snackbar('Error', 'Title and Description required');
       return;
     }
 
     try {
       isLoading(true);
 
+      String? base64Image;
+      if (selectedImage.value != null) {
+        final bytes = await selectedImage.value!.readAsBytes();
+        base64Image = 'data:image/png;base64,${base64Encode(bytes)}';
+      }
+
       final post = PostModel(
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
-        base64Image:
-            selectedImage.value != null
-                ? 'data:image/png;base64,${base64Encode(await selectedImage.value!.readAsBytes())}'
-                : null,
+        base64Image: base64Image,
       );
 
       bool success = await _postRepository.updatePost(selectedPostId!, post);
 
       if (success) {
-        Get.snackbar('Success', 'Post updated successfully');
+        Get.snackbar('Updated', 'Post updated');
         selectedPostId = null;
         titleController.clear();
         descriptionController.clear();
-        selectedImage.value = null; // Clear image after successful update
+        selectedImage.value = null;
         await fetchAllPosts();
       } else {
-        Get.snackbar('Error', 'Failed to update post');
+        Get.snackbar('Error', 'Update failed');
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred while updating the post: $e');
+      Get.snackbar('Error', 'Error: $e');
     } finally {
       isLoading(false);
     }
   }
 
-  // Delete a selected post
   Future<void> deletePost() async {
     if (selectedPostId == null) {
-      Get.snackbar('Error', 'No post selected for deletion');
+      Get.snackbar('Error', 'No post selected');
       return;
     }
 
     try {
       isLoading(true);
-
-      // Pass only the selectedPostId for deletion
       bool success = await _postRepository.deletePost(selectedPostId!);
 
       if (success) {
-        Get.snackbar('Success', 'Post deleted successfully');
+        Get.snackbar('Deleted', 'Post deleted');
         selectedPostId = null;
-        await fetchAllPosts(); // Refresh the list after deletion
+        await fetchAllPosts();
       } else {
-        Get.snackbar('Error', 'Failed to delete post');
+        Get.snackbar('Error', 'Delete failed');
       }
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred while deleting the post: $e');
+      Get.snackbar('Error', 'Error: $e');
     } finally {
       isLoading(false);
     }
   }
 
-  // Pick an image from the gallery
-  Future<void> pickImage() async {
+  Future<void> fetchAllPosts() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        setSelectedImage(File(image.path));
-      }
+      isLoading(true);
+      final data = await _postRepository.fetchPosts();
+      posts.assignAll(data);
     } catch (e) {
-      Get.snackbar('Error', 'An error occurred while picking an image: $e');
+      Get.snackbar("Error", 'Fetch failed: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
